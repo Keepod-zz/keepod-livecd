@@ -1,9 +1,10 @@
 
-
+PATH=/bin:/usr/bin:./tools
 boot_dir := boot
 
 img:
-	mksquashfs system boot/system.sfs -noappend
+	tools/mkuserimg.sh system system.img ext4 system 0 file_contexts	
+	mksquashfs system.img boot/system.sfs -noappend
 
 keepod.iso: $(boot_dir) 
 	genisoimage -vJURT -b isolinux/isolinux.bin -c isolinux/boot.cat \
