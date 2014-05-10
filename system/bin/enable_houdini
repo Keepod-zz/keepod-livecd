@@ -1,0 +1,54 @@
+#!/system/bin/sh
+
+cd /system/lib/arm
+if touch .dl_houdini; then
+	rm -f .dl_houdini
+else
+	cd .. && cp -a arm /data/local/tmp
+	mount -t tmpfs tmpfs arm && cd arm &&
+		cp -a /data/local/tmp/arm/* . && rm -rf /data/local/tmp/arm
+fi
+
+while [ ! -e ../libhoudini.so -a ! -e libhoudini.so ]; do
+	while [ "$(getprop net.dns1)" = "" ]; do
+		sleep 10
+	done
+	wget http://goo.gl/ARIlS5 -cO houdini.tgz &&
+		bzcat houdini.tgz | tar xvf - && rm -f houdini.tgz
+	sleep 30
+done
+
+# if you don't see the files 'register' and 'status' in /proc/sys/fs/binfmt_misc
+# then run the following command:
+# mount -t binfmt_misc none /proc/sys/fs/binfmt_misc
+
+# this is to add the supported binary formats via binfmt_misc
+
+houdini_bin=0
+
+if [ ! -e /proc/sys/fs/binfmt_misc ]; then
+	modprobe binfmt_misc
+fi
+
+if [ ! -e /proc/sys/fs/binfmt_misc/register ]; then
+	mount -t binfmt_misc none /proc/sys/fs/binfmt_misc
+fi
+
+if [ -e /proc/sys/fs/binfmt_misc/register ]; then
+	# register Houdini for arm binaries
+	echo ':arm:M::\\x7f\\x45\\x4c\\x46\\x01\\x01\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x28::/system/bin/houdini:' > /proc/sys/fs/binfmt_misc/register
+	if [ -e /proc/sys/fs/binfmt_misc/arm ]; then
+		houdini_bin=1
+	fi
+else
+	echo "No binfmt_misc support"
+fi
+
+if [ $houdini_bin -eq 0 ]; then
+	echo "houdini enabling failed !!!"
+fi
+if [ $houdini_bin -eq 1 ]; then
+	echo "houdini enabled"
+fi
+
+exit 0
