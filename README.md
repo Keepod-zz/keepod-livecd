@@ -1,4 +1,4 @@
-android-iso
-===========
+keepod-livecd
+=============
 
-Build keepod-android ISO file.
+Create Keepod LiveCD image from compiled programs, not from source code. It's useful for testing.
